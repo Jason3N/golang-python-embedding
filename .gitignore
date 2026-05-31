@@ -158,6 +158,9 @@ env.bak/
 venv.bak/
 
 # Spyder project settings
+
+# Go
+.gocache/
 .spyderproject
 .spyproject
 
