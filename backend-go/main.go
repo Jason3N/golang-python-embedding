@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"api-handler/routes"
+
 	"github.com/joho/godotenv"
 )
 
@@ -23,6 +25,7 @@ func main() {
 
 	fmt.Println("Connected to PGDB")
 	fmt.Println("Starting server at port :8080")
+	http.HandleFunc("/embeddings", routes.PostEmbedding)
 
 	err = http.ListenAndServe("localhost:8080", nil)
 	if err != nil {
