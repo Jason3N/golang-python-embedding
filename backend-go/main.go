@@ -25,7 +25,8 @@ func main() {
 
 	fmt.Println("Connected to PGDB")
 	fmt.Println("Starting server at port :8080")
-	http.HandleFunc("/embeddings", routes.PostEmbedding)
+	handler := routes.Handler{DB: conn}
+	http.HandleFunc("/embeddings", handler.PostEmbedding)
 
 	err = http.ListenAndServe("localhost:8080", nil)
 	if err != nil {

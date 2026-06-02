@@ -12,7 +12,7 @@ type embeddingModelResponse struct {
 	Embedding []float64 `json:"embedding"`
 }
 
-func PostEmbedding(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) PostEmbedding(w http.ResponseWriter, r *http.Request) {
 	// 1. Prevents any method being used here besides a POST
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
@@ -83,6 +83,41 @@ func PostEmbedding(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(embeddingResp)
+	if err != nil {
+		// Go failed while writing the final JSON response back to the original caller.
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) GetAllEmbeddings(w http.ResponseWriter, r *http.Request) {
+	// 1. Prevents any method being used here besides a GET
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		http.Error(w, "Method not allowed, only GET", http.StatusMethodNotAllowed)
+		return
+	}
+
+	defer r.Body.Close()
+
+	rows, err := h.DB.Query("SELECT id, content, embedding FROM chunks")
+	if err != nil {
+		http.Error(w, "Could not get from database", http.StatusInternalServerError)
+	}
+
+	var embeddingResp []models.StoredEmbeddings
+	for rows.Next() {
+		var embedding models.StoredEmbeddings
+		err := rows.Scan(&embedding.ID,
+			&embedding.Content,
+			&embedding.Embedding)
+		if err != nil {
+			http.Error(w, "ERROR", http.StatusInternalServerError)
+		}
+		embeddingResp = append(embeddingResp, embedding)
+	}
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(embeddingResp)
 	if err != nil {
